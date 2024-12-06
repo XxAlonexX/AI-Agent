@@ -29,24 +29,20 @@ class QuantResearchAgent:
         return filepath
 
     def save_model(self, model, model_name):
+        """Save the trained model."""
         try:
-            model_path = self.models_path / f"{model_name}.pt"
+            # Create models directory if it doesn't exist
+            models_dir = self.repo_path / "models"
+            if not models_dir.exists():
+                models_dir.mkdir(parents=True)
+            
+            # Save just the model state dict
+            model_path = models_dir / f"{model_name}.pt"
             torch.save(model.state_dict(), model_path)
-            
-            config_path = self.models_path / f"{model_name}_config.txt"
-            config = {
-                'input_size': model.lstm.input_size,
-                'hidden_size': model.hidden_size,
-                'num_layers': model.num_layers,
-                'output_size': model.fc.out_features
-            }
-            with open(config_path, 'w') as f:
-                for key, value in config.items():
-                    f.write(f"{key}: {value}\n")
-            
-            return model_path
+            print(f"Model saved successfully to {model_path}")
+            return str(model_path)
         except Exception as e:
-            print(f"Warning: Could not save model due to: {str(e)}")
+            print(f"Error saving model: {str(e)}")
             return None
 
     def commit_changes(self, message):
@@ -64,24 +60,56 @@ class QuantResearchAgent:
     def fetch_market_data(self, symbol, start_date, end_date):
         """Fetch market data for a given symbol."""
         import yfinance as yf
+        import time
+        from datetime import datetime, timedelta
         
-        # Fetch data
-        data = yf.download(symbol, start=start_date, end=end_date)
+        max_retries = 3
+        retry_delay = 2  # seconds
         
-        # Clean the data
-        data = data.dropna()  # Remove any NaN values
-        
-        # Handle multi-index columns if present
-        if isinstance(data.columns, pd.MultiIndex):
-            data.columns = data.columns.droplevel(1)  # Drop the ticker level
-        
-        data = data.astype(float)  # Convert all values to float
-        
-        print(f"Fetched {len(data)} rows of market data")
-        print("Columns:", data.columns.tolist())
-        print("Sample data:\n", data.head())
-        
-        return data
+        for attempt in range(max_retries):
+            try:
+                # Fetch data with longer timeout
+                data = yf.download(symbol, 
+                                 start=start_date, 
+                                 end=end_date,
+                                 progress=False,
+                                 timeout=20)
+                
+                if data.empty:
+                    print(f"No data received for {symbol}. Trying with extended date range...")
+                    # Try with a longer date range
+                    extended_start = (datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=30)).strftime('%Y-%m-%d')
+                    data = yf.download(symbol, 
+                                     start=extended_start, 
+                                     end=end_date,
+                                     progress=False,
+                                     timeout=20)
+                
+                # Clean the data
+                data = data.dropna()
+                
+                # Handle multi-index columns if present
+                if isinstance(data.columns, pd.MultiIndex):
+                    data.columns = data.columns.droplevel(1)
+                
+                data = data.astype(float)
+                
+                if len(data) == 0:
+                    raise ValueError(f"No valid data found for {symbol}")
+                    
+                print(f"Successfully fetched {len(data)} rows of market data")
+                print("Columns:", data.columns.tolist())
+                print("Sample data:\n", data.head())
+                
+                return data
+                
+            except Exception as e:
+                print(f"Attempt {attempt + 1}/{max_retries} failed: {str(e)}")
+                if attempt < max_retries - 1:
+                    print(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    raise Exception(f"Failed to fetch data after {max_retries} attempts: {str(e)}")
 
     def analyze_strategy(self, data, strategy_name):
         pass
