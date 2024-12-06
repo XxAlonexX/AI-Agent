@@ -1,7 +1,14 @@
 import os
-from pathlib import Path
+import sys
 import torch
 import numpy as np
+from datetime import datetime, timedelta
+from pathlib import Path
+
+# Add the src directory to the Python path
+src_dir = Path(__file__).resolve().parent
+sys.path.append(str(src_dir))
+
 from agent.quant_research_agent import QuantResearchAgent
 from models.lstm_trader import LSTMTrader, TradingModelTrainer
 from utils.data_processor import DataProcessor
@@ -151,10 +158,21 @@ This document presents comprehensive research on a deep learning-based trading s
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     patience_counter = 0
-                    # Save the model
-                    model_path = os.path.join(agent.repo_path, "models", "best_model.pth")
-                    os.makedirs(os.path.join(agent.repo_path, "models"), exist_ok=True)
-                    trainer.save_model(model_path)
+                    
+                    try:
+                        # Save using numpy-based save method
+                        model_dir = os.path.join(agent.repo_path, "models")
+                        os.makedirs(model_dir, exist_ok=True)
+                        model_path = os.path.join(model_dir, "best_model.npz")
+                        
+                        if model.save(model_path):
+                            print(f"Successfully saved model to {model_path}")
+                        else:
+                            print("Failed to save model")
+                    except Exception as e:
+                        print(f"Warning: Could not save model due to: {str(e)}")
+                        # Continue training even if saving fails
+                        pass
                 else:
                     patience_counter += 1
                     

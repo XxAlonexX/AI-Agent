@@ -49,9 +49,46 @@ class LSTMTrader(nn.Module):
         attention_weights = self.attention(lstm_out)
         context_vector = torch.sum(attention_weights * lstm_out, dim=1)
         
-        # Final prediction
+        # Output layer
         out = self.fc(context_vector)
         return out
+
+    def save(self, path):
+        """Save model parameters as numpy arrays."""
+        try:
+            import numpy as np
+            # Convert state dict to numpy arrays
+            state_dict = self.state_dict()
+            numpy_dict = {
+                key: val.cpu().numpy() 
+                for key, val in state_dict.items()
+            }
+            # Save as numpy format
+            np.savez(path, **numpy_dict)
+            return True
+        except Exception as e:
+            print(f"Error in save: {str(e)}")
+            return False
+
+    @classmethod
+    def load(cls, path, model_params):
+        """Load model parameters from numpy arrays."""
+        try:
+            import numpy as np
+            # Load numpy arrays
+            loaded = np.load(path)
+            # Convert back to torch tensors
+            state_dict = {
+                key: torch.from_numpy(loaded[key]) 
+                for key in loaded.files
+            }
+            # Create new model and load state
+            model = cls(**model_params)
+            model.load_state_dict(state_dict)
+            return model
+        except Exception as e:
+            print(f"Error in load: {str(e)}")
+            return None
 
 class TradingModelTrainer:
     def __init__(self, model, learning_rate=0.001):
