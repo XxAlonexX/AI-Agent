@@ -62,7 +62,25 @@ class QuantResearchAgent:
             print(f"Warning: Error during git operations: {str(e)}")
 
     def fetch_market_data(self, symbol, start_date, end_date):
+        """Fetch market data for a given symbol."""
+        import yfinance as yf
+        
+        # Fetch data
         data = yf.download(symbol, start=start_date, end=end_date)
+        
+        # Clean the data
+        data = data.dropna()  # Remove any NaN values
+        
+        # Handle multi-index columns if present
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = data.columns.droplevel(1)  # Drop the ticker level
+        
+        data = data.astype(float)  # Convert all values to float
+        
+        print(f"Fetched {len(data)} rows of market data")
+        print("Columns:", data.columns.tolist())
+        print("Sample data:\n", data.head())
+        
         return data
 
     def analyze_strategy(self, data, strategy_name):
