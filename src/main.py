@@ -22,24 +22,46 @@ This document presents research on a deep learning-based trading strategy using 
     """
     
     research_doc = agent.create_research_document("LSTM_Trading_Strategy", research_content)
+    print(f"Created research document: {research_doc}")
     
-    data = agent.fetch_market_data("AAPL", "2020-01-01", "2023-01-01")
+    try:
+        data = agent.fetch_market_data("AAPL", "2020-01-01", "2023-01-01")
+        print("Fetched market data for AAPL")
+    except Exception as e:
+        print(f"Error fetching market data: {e}")
     
     processor = DataProcessor()
-    X, y = processor.prepare_data(data, sequence_length=60)
+    try:
+        X, y = processor.prepare_data(data, sequence_length=60)
+        print("Processed data with technical indicators")
+    except Exception as e:
+        print(f"Error processing data: {e}")
     
-    model = LSTMTrader(
-        input_size=X.shape[2],
-        hidden_size=64,
-        num_layers=2,
-        output_size=1
-    )
+    try:
+        model = LSTMTrader(
+            input_size=X.shape[2],
+            hidden_size=64,
+            num_layers=2,
+            output_size=1
+        )
+        print("Created LSTM model")
+    except Exception as e:
+        print(f"Error creating LSTM model: {e}")
     
     trainer = TradingModelTrainer(model)
     
-    model_path = agent.save_model(model, "lstm_trader_v1")
+    try:
+        model_path = agent.save_model(model, "lstm_trader_v1")
+        if model_path:
+            print(f"Saved model to: {model_path}")
+    except Exception as e:
+        print(f"Error saving model: {e}")
     
-    agent.commit_changes("Initial commit: Added LSTM trading model and research")
+    try:
+        agent.commit_changes("Initial commit: Added LSTM trading model and research")
+        print("Committed changes to repository")
+    except Exception as e:
+        print(f"Error committing changes: {e}")
 
 if __name__ == "__main__":
     main()

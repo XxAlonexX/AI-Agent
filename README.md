@@ -23,9 +23,9 @@ This project implements an AI agent that conducts research in quantitative tradi
 ## Setup
 
 1. Clone the repository
-```bash
-git clone git@github.com:XxAlonexX/AI-Agent.git
-```
+   ```bash
+   git clone git@github.com:XxAlonexX/AI-Agent.git
+   ```
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt

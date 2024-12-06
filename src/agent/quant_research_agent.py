@@ -29,8 +29,20 @@ class QuantResearchAgent:
         return filepath
 
     def save_model(self, model, model_name):
-        model_path = self.models_path / f"{model_name}.pth"
-        torch.save(model.state_dict(), model_path)
+        model_path = self.models_path / f"{model_name}.pt"
+        try:
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'model_config': {
+                    'input_size': model.lstm.input_size,
+                    'hidden_size': model.hidden_size,
+                    'num_layers': model.num_layers,
+                    'output_size': model.fc.out_features
+                }
+            }, model_path)
+        except Exception as e:
+            print(f"Warning: Could not save model due to: {str(e)}")
+            return None
         return model_path
 
     def commit_changes(self, message):
