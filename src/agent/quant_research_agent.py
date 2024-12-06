@@ -29,27 +29,37 @@ class QuantResearchAgent:
         return filepath
 
     def save_model(self, model, model_name):
-        model_path = self.models_path / f"{model_name}.pt"
         try:
-            model_state = {
-                'state_dict': model.state_dict(),
-                'config': {
-                    'input_size': model.lstm.input_size,
-                    'hidden_size': model.hidden_size,
-                    'num_layers': model.num_layers,
-                    'output_size': model.fc.out_features
-                }
+            model_path = self.models_path / f"{model_name}.pt"
+            torch.save(model.state_dict(), model_path)
+            
+            config_path = self.models_path / f"{model_name}_config.txt"
+            config = {
+                'input_size': model.lstm.input_size,
+                'hidden_size': model.hidden_size,
+                'num_layers': model.num_layers,
+                'output_size': model.fc.out_features
             }
-            with open(model_path, 'wb') as f:
-                torch.save(model_state, f)
+            with open(config_path, 'w') as f:
+                for key, value in config.items():
+                    f.write(f"{key}: {value}\n")
+            
+            return model_path
         except Exception as e:
             print(f"Warning: Could not save model due to: {str(e)}")
             return None
-        return model_path
 
     def commit_changes(self, message):
-        self.repo.index.add('*')
-        self.repo.index.commit(message)
+        try:
+            self.repo.index.add('*')
+            self.repo.index.commit(message)
+            
+            origin = self.repo.remote(name='origin')
+            current = self.repo.active_branch
+            origin.push(current.name)
+            print(f"Changes pushed to remote repository: {origin.url}")
+        except Exception as e:
+            print(f"Warning: Error during git operations: {str(e)}")
 
     def fetch_market_data(self, symbol, start_date, end_date):
         data = yf.download(symbol, start=start_date, end=end_date)
