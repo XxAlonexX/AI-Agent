@@ -28,8 +28,8 @@ This document presents comprehensive research on a deep learning-based trading s
 ## Results
 
 ### Performance Metrics
-- Total Return: -100.00%
-- Sharpe Ratio: 3.95
-- Max Drawdown: -100.00%
-- MSE: 0.6440954208374023
-- MAE: 0.7966705560684204
+- Total Return: 4773612757568258483616122852621076678951068991529874980020694090311008256.00%
+- Sharpe Ratio: 110.25
+- Max Drawdown: 0.00%
+- MSE: 0.4750620424747467
+- MAE: 0.6801804900169373
