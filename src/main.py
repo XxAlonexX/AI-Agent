@@ -134,14 +134,33 @@ This document presents comprehensive research on a deep learning-based trading s
             trainer = TradingModelTrainer(model)
             print("Starting model training...")
             
-            # Train the model
-            train_losses, val_losses = train_and_evaluate(
-                X_train, y_train,
-                X_val, y_val,
-                model, trainer,
-                n_epochs=50,
-                batch_size=32
-            )
+            num_epochs = 50
+            best_val_loss = float('inf')
+            patience = 10
+            patience_counter = 0
+            
+            for epoch in range(num_epochs):
+                train_loss = trainer.train_step(X_train, y_train)
+                val_loss = trainer.validate(X_val, y_val)
+                
+                print(f"Epoch {epoch+1}/{num_epochs}")
+                print(f"Training Loss: {train_loss:.4f}")
+                print(f"Validation Loss: {val_loss:.4f}")
+                
+                # Early stopping check
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
+                    patience_counter = 0
+                    # Save the model
+                    model_path = os.path.join(agent.repo_path, "models", "best_model.pth")
+                    os.makedirs(os.path.join(agent.repo_path, "models"), exist_ok=True)
+                    trainer.save_model(model_path)
+                else:
+                    patience_counter += 1
+                    
+                if patience_counter >= patience:
+                    print("Early stopping triggered!")
+                    break
             
             # Evaluate on test set
             test_predictions = trainer.predict(X_val)
@@ -159,11 +178,6 @@ This document presents comprehensive research on a deep learning-based trading s
             
             with open(research_doc, 'a') as f:
                 f.write(results_content)
-            
-            # Save model
-            model_path = agent.save_model(model, "lstm_trader_v2")
-            if model_path:
-                print(f"Saved model to: {model_path}")
             
             # Commit changes
             agent.commit_changes("Updated research with LSTM trading strategy results")

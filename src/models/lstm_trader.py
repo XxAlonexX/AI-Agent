@@ -117,3 +117,18 @@ class TradingModelTrainer:
         }
         
         return metrics, df
+
+    def save_model(self, path):
+        """Save the model state dict and training parameters."""
+        try:
+            # Save only the model state dict
+            torch.save({
+                'model_state_dict': self.model.state_dict(),
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                'scheduler_state_dict': self.scheduler.state_dict()
+            }, path)
+            print(f"Model saved successfully to {path}")
+            return True
+        except Exception as e:
+            print(f"Error saving model: {str(e)}")
+            return False
