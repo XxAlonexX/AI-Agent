@@ -27,6 +27,7 @@ class TradingModelTrainer:
         
     def train_step(self, X, y):
         outputs = self.model(X)
+        y = y.view(-1, 1)  # Reshape target to match output dimensions
         loss = self.criterion(outputs, y)
         
         self.optimizer.zero_grad()

@@ -31,15 +31,17 @@ class QuantResearchAgent:
     def save_model(self, model, model_name):
         model_path = self.models_path / f"{model_name}.pt"
         try:
-            torch.save({
-                'model_state_dict': model.state_dict(),
-                'model_config': {
+            model_state = {
+                'state_dict': model.state_dict(),
+                'config': {
                     'input_size': model.lstm.input_size,
                     'hidden_size': model.hidden_size,
                     'num_layers': model.num_layers,
                     'output_size': model.fc.out_features
                 }
-            }, model_path)
+            }
+            with open(model_path, 'wb') as f:
+                torch.save(model_state, f)
         except Exception as e:
             print(f"Warning: Could not save model due to: {str(e)}")
             return None
