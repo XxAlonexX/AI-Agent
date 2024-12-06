@@ -5,11 +5,9 @@ from models.lstm_trader import LSTMTrader, TradingModelTrainer
 from utils.data_processor import DataProcessor
 
 def main():
-    # Initialize the agent
     repo_path = Path(__file__).parent.parent
     agent = QuantResearchAgent(repo_path)
     
-    # Create a research document
     research_content = """# Trading Strategy Research
     
 ## Overview
@@ -25,14 +23,11 @@ This document presents research on a deep learning-based trading strategy using 
     
     research_doc = agent.create_research_document("LSTM_Trading_Strategy", research_content)
     
-    # Fetch market data
     data = agent.fetch_market_data("AAPL", "2020-01-01", "2023-01-01")
     
-    # Process data
     processor = DataProcessor()
     X, y = processor.prepare_data(data, sequence_length=60)
     
-    # Create and train model
     model = LSTMTrader(
         input_size=X.shape[2],
         hidden_size=64,
@@ -42,10 +37,8 @@ This document presents research on a deep learning-based trading strategy using 
     
     trainer = TradingModelTrainer(model)
     
-    # Save model
     model_path = agent.save_model(model, "lstm_trader_v1")
     
-    # Commit changes
     agent.commit_changes("Initial commit: Added LSTM trading model and research")
 
 if __name__ == "__main__":
